@@ -1,0 +1,7 @@
+.build/
+.swiftpm/
+*.xcodeproj/
+dist/
+.DS_Store
+packaging/AppIcon.iconset/
+.claude/

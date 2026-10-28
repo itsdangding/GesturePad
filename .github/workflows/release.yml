@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: swift test
+      - name: Build app
+        env:
+          GESTUREPAD_VERSION: ${{ github.ref_name }}
+        run: ./scripts/build-app.sh
+      - name: Zip
+        run: ditto -c -k --keepParent "dist/快捷手势.app" "dist/GesturePad-${{ github.ref_name }}.zip"
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" "dist/GesturePad-${{ github.ref_name }}.zip" \
+            --title "${{ github.ref_name }}" \
+            --notes "未经 Apple 公证。解压后放到「应用程序」，首次打开前运行：xattr -dr com.apple.quarantine /path/to/快捷手势.app"

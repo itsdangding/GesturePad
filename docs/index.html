@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>快捷手势 · macOS 手势工具</title>
+  <meta name="description" content="开源的 macOS 菜单栏手势工具。按住鼠标右键或触控板画一笔，打开应用、发快捷键、移动窗口。">
+  <meta property="og:title" content="快捷手势 · macOS 手势工具">
+  <meta property="og:description" content="开源的 macOS 菜单栏手势工具。按住鼠标右键或触控板画一笔，打开应用、发快捷键、移动窗口。">
+  <meta property="og:image" content="screenshots/mouse.png">
+  <meta name="theme-color" content="#f4f0e8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#161512" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="index.html"><svg viewBox="0 0 100 100" aria-hidden="true"><path class="stroke" d="M74 24C72 56 40 74 22 72" stroke-width="10" stroke-linecap="round" fill="none"/><circle class="dot" cx="74" cy="24" r="6.5"/></svg>快捷手势</a>
+      <nav>
+        <a href="index.html#how" class="hide-sm">怎么用</a>
+        <a href="gestures.html">手势表</a>
+        <a href="index.html#install" class="hide-sm">安装</a>
+        <a class="gh" href="https://github.com/itsdangding/GesturePad"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <section class="hero">
+        <p class="kicker">开源 · macOS 菜单栏工具</p>
+        <h1>按住，画一笔，<em>松手</em>。</h1>
+        <p class="lead">按住右键画个 W 打开微信，向左一划就后退。触控板按住 Fn 再画，指针推到屏幕角落就能锁屏、调音量。手势可以自己添加和修改。不联网，不收集数据。</p>
+        <div class="actions">
+          <a class="btn primary" href="#install">安装到这台 Mac</a>
+          <a class="btn" href="https://github.com/itsdangding/GesturePad"><svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>在 GitHub 查看源码</a>
+        </div>
+        <p class="meta">macOS 14 及以上 · Swift 编写 · MIT 许可</p>
+        <figure class="shot">
+          <img src="screenshots/mouse.png" width="1920" height="1440" alt="快捷手势的设置窗口：左边是分类，右边列出鼠标右键手势，每一条有笔迹缩略图、要做的事和开关">
+        </figure>
+      </section>
+    </div>
+
+    <section class="block" id="how">
+      <div class="wrap">
+        <p class="eyebrow">三种画法</p>
+        <h2>平常怎么用鼠标，就还怎么用</h2>
+        <p class="sub">只有按住并明显画长一笔才算手势。短按右键仍然是右键菜单，触控板不按 Fn 就是普通光标。</p>
+        <div class="cards">
+          <article class="card">
+            <div class="glyph"><svg viewBox="-4 -4 108 108" aria-hidden="true"><path d="M8 16 L28 86 L50 36 L72 86 L92 16" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="16" r="9" fill="currentColor"/></svg></div>
+            <h3>鼠标右键</h3>
+            <p>按住右键画直线或字母，松开才执行。中键也能画，按住中键滚动可以切标签。</p>
+          </article>
+          <article class="card">
+            <div class="glyph"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M10.0 50.0 L90.0 50.0" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10.0" cy="50.0" r="9" fill="currentColor"/><path d="M72.2 62.9 L90.0 50.0 L72.2 37.1" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>触控板 + Fn</h3>
+            <p>先按住 Fn 再用一根手指画。按住 Fn 轻点触控板四角，窗口缩到对应的四分之一。</p>
+          </article>
+          <article class="card">
+            <div class="glyph"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="18" width="84" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="6" opacity=".6"/><circle cx="78" cy="70" r="9" fill="currentColor"/><path d="M50 62 L50 40 M41 49 L50 40 L59 49" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>屏幕四角</h3>
+            <p>指针推到角落，右键单击开屏保、锁屏；滚动鼠标滚轮调亮度和音量。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow">按你的习惯</p>
+          <h2>自己定手势，认不准就录一笔</h2>
+          <p class="sub" style="margin:0">选一种画法、一个角落或一个快捷键，再选要做的事：打开应用、网址、文件夹，发快捷键，摆放窗口。字母认不准时，照你的写法录一次。</p>
+          <ul class="ticks">
+            <li>每一条手势都能开关、修改、删除，也能添加自己的</li>
+            <li>触发方式和别的手势重复时会提醒</li>
+            <li>没装的应用会标出「未安装」</li>
+            <li>画的时候屏幕上显示轨迹，可以关掉</li>
+          </ul>
+        </div>
+        <img src="screenshots/editor.png" width="1920" height="1440" loading="lazy" alt="编辑手势：选触发方式和画法，再选要做的事">
+      </div>
+    </section>
+
+    <section class="block" id="install">
+      <div class="wrap">
+        <p class="eyebrow">安装</p>
+        <h2>从源码装，三步</h2>
+        <p class="sub">需要 macOS 14 和 Xcode 命令行工具（<code>xcode-select --install</code>）。</p>
+        <ol class="steps">
+          <li>
+            <h3>下载并安装</h3>
+            <p>脚本会跑测试、编译、签名，装到 <code>~/Applications/快捷手势.app</code> 并打开。</p>
+<pre><code>git clone https://github.com/itsdangding/GesturePad.git
+cd GesturePad
+./scripts/install.sh</code></pre>
+          </li>
+          <li>
+            <h3>允许「辅助功能」</h3>
+            <p>第一次打开会弹出设置窗口，点「打开并授权」，在系统设置里打开「快捷手势」。监听鼠标、移动窗口都靠它。</p>
+          </li>
+          <li>
+            <h3>（可选）允许「输入监控」</h3>
+            <p>只有键盘快捷键（如 ⌥ 加方向键）需要。系统设置的列表里没有时，点加号，前往 <code>~/Applications/快捷手势.app</code>。</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow">隐私</p>
+          <h2>只在这台 Mac 上</h2>
+          <p class="sub" style="margin:0">快捷手势不联网，也不上传任何东西。手势设置和录下的笔迹存在 <code>~/Library/Application Support/GesturePad/rules.json</code>，触发记录只写进系统日志。</p>
+        </div>
+        <div>
+          <p class="eyebrow">参与</p>
+          <h2>开源，欢迎一起改</h2>
+          <p class="sub" style="margin:0">代码用 MIT 许可。识别器在 <code>GesturePadCore</code> 里，有单元测试，不依赖界面，很适合从这里上手。提问题、提建议、发 PR 都欢迎。</p>
+          <div class="actions" style="justify-content:flex-start">
+            <a class="btn" href="https://github.com/itsdangding/GesturePad/blob/main/CONTRIBUTING.md">贡献指南</a>
+            <a class="btn" href="https://github.com/itsdangding/GesturePad/issues">反馈问题</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <span>快捷手势 GesturePad · <a href="https://github.com/itsdangding/GesturePad/blob/main/LICENSE">MIT 许可</a></span>
+      <span><a href="https://github.com/itsdangding/GesturePad">源码</a> · <a href="https://github.com/itsdangding/GesturePad/issues">反馈问题</a> · <a href="https://github.com/itsdangding/GesturePad/blob/main/CONTRIBUTING.md">参与贡献</a></span>
+    </div>
+  </footer>
+</body>
+</html>

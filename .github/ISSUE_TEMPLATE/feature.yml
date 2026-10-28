@@ -1,0 +1,15 @@
+name: 功能建议
+description: 想要新的手势、动作或设置
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: 你想做什么
+      description: 说说使用场景，比画法本身更重要。
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你设想的做法

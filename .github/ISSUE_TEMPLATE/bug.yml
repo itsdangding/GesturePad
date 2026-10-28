@@ -1,0 +1,30 @@
+name: 问题报告
+description: 手势没反应、认错了，或者别的地方不对
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么
+      description: 你做了什么，期望发生什么，实际发生了什么。
+    validations:
+      required: true
+  - type: dropdown
+    id: input
+    attributes:
+      label: 用的是
+      options: [鼠标右键, 鼠标中键, 触控板（Fn）, 屏幕四角, 键盘, 设置窗口, 其他]
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS 版本
+      placeholder: 例如 15.3
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: 日志
+      description: 在终端运行 log show --last 10m --predicate 'process == "GesturePad"'，复制相关几行。
