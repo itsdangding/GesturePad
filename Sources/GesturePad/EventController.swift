@@ -80,6 +80,8 @@ final class EventController {
     private var lastMedia = Date.distantPast
     /// Where the last non-momentum scroll came from. Momentum keeps that source.
     private var lastScrollSource: ScrollSource = .wheel
+    /// A trackpad right click in a screen corner ran a rule; drop its up event.
+    private var swallowRightUp = false
     private let performLock = NSLock()
     private var lastStroke = Date.distantPast
     private var lastStrokeID = ""
@@ -223,6 +225,19 @@ final class EventController {
         case .rightMouseDown:
             guard snap.usesRightButton else { return Unmanaged.passUnretained(event) }
             let point = location(of: event, snap: snap)
+            // Trackpad secondary clicks go straight through, so the context
+            // menu opens at once as usual. Only screen-corner rules apply to them.
+            if snap.recordingRuleID == nil, trackpad.isAvailable, trackpad.fingerRecentlyDown {
+                if let corner = screenCorner(point), let rule = snap.rules.first(where: { rule in
+                    guard rule.enabled, case .hotCornerClick(let expected) = rule.trigger else { return false }
+                    return expected == corner
+                }) {
+                    perform(rule)
+                    swallowRightUp = true
+                    return nil
+                }
+                return Unmanaged.passUnretained(event)
+            }
             right = Stroke(origin: point, rawOrigin: event.location, flags: event.flags, points: [point])
             return nil
         case .rightMouseDragged:
@@ -231,6 +246,10 @@ final class EventController {
             showMouseTrail(right?.points ?? [])
             return nil
         case .rightMouseUp:
+            if swallowRightUp {
+                swallowRightUp = false
+                return nil
+            }
             guard right != nil else { return Unmanaged.passUnretained(event) }
             finish(stroke: right, source: .right, rules: snap.rules, release: event)
             right = nil

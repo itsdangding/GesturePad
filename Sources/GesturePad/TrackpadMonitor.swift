@@ -69,6 +69,7 @@ final class TrackpadMonitor {
     private var stroke: [CGPoint] = []
     private let touchLock = NSLock()
     private var lastMultiTouch: TimeInterval = 0
+    private var lastTouch: TimeInterval = 0
     private(set) var isAvailable = false
 
     /// Two or more fingers were on the trackpad a moment ago, so a smooth
@@ -77,6 +78,15 @@ final class TrackpadMonitor {
         touchLock.lock()
         defer { touchLock.unlock() }
         return ProcessInfo.processInfo.systemUptime - lastMultiTouch < 0.25
+    }
+
+    /// A finger was on the trackpad a moment ago. A right click right now is a
+    /// trackpad secondary click (two-finger click or tap, or a corner click).
+    /// Tap-to-click fires after the fingers lift, hence the short grace period.
+    var fingerRecentlyDown: Bool {
+        touchLock.lock()
+        defer { touchLock.unlock() }
+        return ProcessInfo.processInfo.systemUptime - lastTouch < 0.3
     }
 
     func start() -> String? {
@@ -180,15 +190,17 @@ final class TrackpadMonitor {
 
     /// Runs for every frame, whatever the gesture settings are.
     private func noteFingerCount(touches: UnsafeMutableRawPointer?, count: Int) {
-        guard let touches, count >= 2, count < 32 else { return }
+        guard let touches, count >= 1, count < 32 else { return }
         var down = 0
         for index in 0..<count {
             let touch = touches.advanced(by: index * MemoryLayout<MTTouch>.stride).load(as: MTTouch.self)
             if touch.state == 3 || touch.state == 4 { down += 1 }
         }
-        guard down >= 2 else { return }
+        guard down >= 1 else { return }
+        let now = ProcessInfo.processInfo.systemUptime
         touchLock.lock()
-        lastMultiTouch = ProcessInfo.processInfo.systemUptime
+        lastTouch = now
+        if down >= 2 { lastMultiTouch = now }
         touchLock.unlock()
     }
 
