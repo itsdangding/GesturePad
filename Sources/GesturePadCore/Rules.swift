@@ -131,8 +131,6 @@ public enum Trigger: Codable, Equatable {
     case middleStroke(StrokeName)
     case rightScroll(ScrollDirection, bundleID: String?)
     case middleScroll(ScrollDirection)
-    case fnStroke(StrokeName)
-    case fnCorner(Corner)
     case hotCornerClick(Corner)
     case hotCornerScroll(Corner, ScrollDirection)
     case hotkey(keyCode: Int, modifiers: [ModifierKey])
@@ -148,10 +146,6 @@ public enum Trigger: Codable, Equatable {
             return "\(whereText)按住右键\(direction.title)"
         case .middleScroll(let direction):
             return "按住中键\(direction.title)"
-        case .fnStroke(let name):
-            return "按住 Fn，在触控板上画\(name.title)"
-        case .fnCorner(let corner):
-            return "按住 Fn，轻点触控板\(corner.title)"
         case .hotCornerClick(let corner):
             return "在屏幕\(corner.title)右键单击"
         case .hotCornerScroll(let corner, let direction):
@@ -224,7 +218,7 @@ public struct GestureRule: Codable, Equatable, Identifiable {
 
     public var strokeName: StrokeName? {
         switch trigger {
-        case .rightStroke(let name), .middleStroke(let name), .fnStroke(let name):
+        case .rightStroke(let name), .middleStroke(let name):
             return name
         default:
             return nil
@@ -249,7 +243,6 @@ public struct SamplePoint: Codable, Equatable {
 public enum RuleGroup: String, CaseIterable {
     case mouse = "鼠标右键"
     case middle = "鼠标中键"
-    case trackpad = "触控板（按住 Fn）"
     case corner = "屏幕四角"
     case key = "键盘"
 
@@ -259,8 +252,6 @@ public enum RuleGroup: String, CaseIterable {
             return .mouse
         case .middleStroke, .middleScroll:
             return .middle
-        case .fnStroke, .fnCorner:
-            return .trackpad
         case .hotCornerClick, .hotCornerScroll:
             return .corner
         case .hotkey:
@@ -270,13 +261,12 @@ public enum RuleGroup: String, CaseIterable {
 }
 
 public enum BuiltinRules {
-    public static let all: [GestureRule] = mouse + middle + trackpad + corners + keys
+    public static let all: [GestureRule] = mouse + middle + corners + keys
 
     private static let wechat = "/Applications/WeChat.app"
     private static let vscode = "/Applications/Visual Studio Code.app"
     private static let activity = "/System/Applications/Utilities/Activity Monitor.app"
     private static let settings = "/System/Applications/System Settings.app"
-    private static let finder = "/System/Library/CoreServices/Finder.app"
 
     private static let mouse: [GestureRule] = [
         rule("mouse.w", "打开微信", .rightStroke(.w), .openApp(path: wechat, bundleID: "com.tencent.xinWeChat")),
@@ -309,20 +299,6 @@ public enum BuiltinRules {
         rule("middle.s", "锁定屏幕", .middleStroke(.s), .lockScreen),
         rule("middle.scroll-up", "上一个标签", .middleScroll(.up), .shortcut(keyCode: 48, modifiers: [.control, .shift], title: "上一个标签 ⌃⇧⇥")),
         rule("middle.scroll-down", "下一个标签", .middleScroll(.down), .shortcut(keyCode: 48, modifiers: [.control], title: "下一个标签 ⌃⇥"))
-    ]
-
-    private static let trackpad: [GestureRule] = [
-        rule("pad.d", "打开访达", .fnStroke(.d), .openApp(path: finder, bundleID: "com.apple.finder")),
-        rule("pad.w", "打开微信", .fnStroke(.w), .openApp(path: wechat, bundleID: "com.tencent.xinWeChat")),
-        rule("pad.h", "打开活动监视器", .fnStroke(.h), .openApp(path: activity, bundleID: "com.apple.ActivityMonitor")),
-        rule("pad.p", "打开系统设置", .fnStroke(.p), .openApp(path: settings, bundleID: "com.apple.systempreferences")),
-        rule("pad.right", "窗口靠右", .fnStroke(.arrowRight), .window(.rightHalf)),
-        rule("pad.left", "窗口靠左", .fnStroke(.arrowLeft), .window(.leftHalf)),
-        rule("pad.v", "窗口居中", .fnStroke(.v), .window(.center)),
-        rule("pad.corner.tl", "左上四分之一", .fnCorner(.topLeft), .window(.topLeft)),
-        rule("pad.corner.tr", "右上四分之一", .fnCorner(.topRight), .window(.topRight)),
-        rule("pad.corner.bl", "左下四分之一", .fnCorner(.bottomLeft), .window(.bottomLeft)),
-        rule("pad.corner.br", "右下四分之一", .fnCorner(.bottomRight), .window(.bottomRight))
     ]
 
     private static let corners: [GestureRule] = [
@@ -362,6 +338,32 @@ public struct RuleFile: Codable, Equatable {
         self.version = version
         self.rules = rules
         self.knownBuiltinIDs = knownBuiltinIDs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        version = try container.decode(Int.self, forKey: .version)
+        rules = try container.decode(LossyRules.self, forKey: .rules).rules
+        knownBuiltinIDs = try container.decodeIfPresent([String].self, forKey: .knownBuiltinIDs)
+    }
+}
+
+/// Decodes a rule list and skips rules this version no longer understands,
+/// such as the trackpad gestures older versions saved.
+struct LossyRules: Decodable {
+    var rules: [GestureRule] = []
+
+    private struct Skip: Decodable {}
+
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        while !container.isAtEnd {
+            if let rule = try? container.decode(GestureRule.self) {
+                rules.append(rule)
+            } else {
+                _ = try container.decode(Skip.self)
+            }
+        }
     }
 }
 
@@ -404,7 +406,7 @@ public enum RuleStore {
         if let file = try? decoder.decode(RuleFile.self, from: data) {
             return file.version >= 2 ? upgrade(file) : merge(saved: file.rules)
         }
-        if let rules = try? decoder.decode([GestureRule].self, from: data) {
+        if let rules = try? decoder.decode(LossyRules.self, from: data).rules {
             return merge(saved: rules)
         }
         return BuiltinRules.all

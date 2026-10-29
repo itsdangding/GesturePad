@@ -104,7 +104,7 @@ final class RulesTests: XCTestCase {
 
     func testVersionOneFileDropsRemovedBuiltins() throws {
         var old = BuiltinRules.all
-        old.append(GestureRule(id: "pad.j", title: "打开京东", trigger: .fnStroke(.j), action: .openURL("https://www.jd.com")))
+        old.append(GestureRule(id: "pad.j", title: "打开京东", trigger: .rightStroke(.j), action: .openURL("https://www.jd.com")))
         old[0].enabled = false
         let url = tempURL()
         defer { try? FileManager.default.removeItem(at: url) }
@@ -115,8 +115,27 @@ final class RulesTests: XCTestCase {
         XCTAssertFalse(loaded[0].enabled)
     }
 
+    func testOldTrackpadRulesAreSkippedAndTheRestKept() throws {
+        let custom = GestureRule(id: "custom.x", title: "打开下载", trigger: .rightStroke(.b), action: .openFolder("/tmp"))
+        let file = RuleFile(rules: [custom], knownBuiltinIDs: BuiltinRules.all.map(\.id))
+        var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(file)) as! [String: Any]
+        var rules = json["rules"] as! [[String: Any]]
+        rules.insert([
+            "id": "pad.d", "title": "打开访达", "enabled": true, "userSamples": [],
+            "trigger": ["fnStroke": ["_0": "d"]],
+            "action": ["lockScreen": [String: Any]()]
+        ], at: 0)
+        json["rules"] = rules
+        let url = tempURL()
+        defer { try? FileManager.default.removeItem(at: url) }
+        try JSONSerialization.data(withJSONObject: json).write(to: url)
+        let loaded = RuleStore.load(from: url)
+        XCTAssertEqual(loaded.first, custom)
+        XCTAssertFalse(loaded.contains { $0.id == "pad.d" })
+    }
+
     func testRemovedDefaultsAreGone() {
-        XCTAssertFalse(BuiltinRules.all.contains { $0.id == "pad.j" || $0.id == "pad.q" })
+        XCTAssertFalse(BuiltinRules.all.contains { $0.id == "pad.j" || $0.id == "pad.q" || $0.id.hasPrefix("pad.corner") || $0.id == "pad.d" })
     }
 
     func testConflictsFindTheSameEnabledTrigger() {

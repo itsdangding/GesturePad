@@ -83,9 +83,9 @@ def direction(name):
 CORNERS = {"tl": (22, 30), "tr": (78, 30), "bl": (22, 70), "br": (78, 70)}
 
 
-def corner(name, scroll=None, trackpad=False):
+def corner(name, scroll=None):
     x, y = CORNERS[name]
-    body = f'<rect x="8" y="18" width="84" height="64" rx="{18 if trackpad else 8}" fill="none" stroke="currentColor" stroke-width="6" opacity=".6"/>'
+    body = f'<rect x="8" y="18" width="84" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="6" opacity=".6"/>'
     body += f'<circle cx="{x}" cy="{y}" r="9" fill="currentColor"/>'
     if scroll:
         y1, y2, head = (62, 40, 9) if scroll == "up" else (40, 62, -9)
@@ -132,19 +132,6 @@ GROUPS = [
         (letter("s"), "锁定屏幕", "字母 S", act(kbd="⌃⌘Q")),
         (wheel("up"), "上一个标签", "按住中键，滚轮向上", act(kbd="⌃⇧⇥")),
         (wheel("down"), "下一个标签", "按住中键，滚轮向下", act(kbd="⌃⇥")),
-    ]),
-    ("trackpad", "触控板", "先按住 Fn，再用一根手指画。只认内置触控板。", [
-        (letter("d"), "打开访达", "按住 Fn，画字母 D", act("访达")),
-        (letter("w"), "打开微信", "按住 Fn，画字母 W", act("微信")),
-        (letter("h"), "打开活动监视器", "按住 Fn，画字母 H", act("活动监视器")),
-        (letter("p"), "打开系统设置", "按住 Fn，画字母 P", act("系统设置")),
-        (direction("right"), "窗口靠右半屏", "按住 Fn，向右直线", ""),
-        (direction("left"), "窗口靠左半屏", "按住 Fn，向左直线", ""),
-        (letter("v"), "窗口居中", "按住 Fn，画字母 V", ""),
-        (corner("tl", trackpad=True), "窗口左上四分之一", "按住 Fn，轻点左上角", ""),
-        (corner("tr", trackpad=True), "窗口右上四分之一", "按住 Fn，轻点右上角", ""),
-        (corner("bl", trackpad=True), "窗口左下四分之一", "按住 Fn，轻点左下角", ""),
-        (corner("br", trackpad=True), "窗口右下四分之一", "按住 Fn，轻点右下角", ""),
     ]),
     ("corner", "屏幕四角", "把指针推到屏幕角落，再单击右键或滚动鼠标滚轮。触控板双指滑动不会触发。", [
         (corner("tl"), "启动屏保", "左上角单击右键", ""),
@@ -219,7 +206,7 @@ INDEX = f'''  <main>
       <section class="hero">
         <p class="kicker">开源 · macOS 菜单栏工具</p>
         <h1>按住，画一笔，<em>松手</em>。</h1>
-        <p class="lead">按住右键画个 W 打开微信，向左一划就后退。触控板按住 Fn 再画，指针推到屏幕角落就能锁屏、调音量。手势可以自己添加和修改。不联网，不收集数据。</p>
+        <p class="lead">按住右键画个 W 打开微信，向左一划就后退。指针推到屏幕角落就能锁屏、调音量。手势可以自己添加和修改。不联网，不收集数据。</p>
         <div class="actions">
           <a class="btn primary" href="#install">安装到这台 Mac</a>
           <a class="btn" href="{REPO}">{GH_BUTTON}在 GitHub 查看源码</a>
@@ -235,7 +222,7 @@ INDEX = f'''  <main>
       <div class="wrap">
         <p class="eyebrow">三种画法</p>
         <h2>平常怎么用鼠标，就还怎么用</h2>
-        <p class="sub">只有按住并明显画长一笔才算手势。短按右键仍然是右键菜单，触控板不按 Fn 就是普通光标。</p>
+        <p class="sub">只有按住并明显画长一笔才算手势。短按右键仍然是右键菜单，触控板照常使用，不会误触。</p>
         <div class="cards">
           <article class="card">
             <div class="glyph">{letter("w")}</div>
@@ -243,9 +230,9 @@ INDEX = f'''  <main>
             <p>按住右键画直线或字母，松开才执行。中键也能画，按住中键滚动可以切标签。</p>
           </article>
           <article class="card">
-            <div class="glyph">{direction("right")}</div>
-            <h3>触控板 + Fn</h3>
-            <p>先按住 Fn 再用一根手指画。按住 Fn 轻点触控板四角，窗口缩到对应的四分之一。</p>
+            <div class="glyph">{keys("⌥→")}</div>
+            <h3>键盘</h3>
+            <p>全局快捷键。⌥ 加方向键把窗口放到半屏，⌃⌥A 打开应用程序文件夹。</p>
           </article>
           <article class="card">
             <div class="glyph">{corner("br", "up")}</div>
@@ -356,7 +343,7 @@ def write(name, text):
 
 
 write("index.html", page("快捷手势 · macOS 手势工具",
-                         "开源的 macOS 菜单栏手势工具。按住鼠标右键或触控板画一笔，打开应用、发快捷键、移动窗口。",
+                         "开源的 macOS 菜单栏手势工具。按住鼠标右键画一笔，打开应用、发快捷键、移动窗口。",
                          "home", INDEX))
 write("gestures.html", page("全部手势 · 快捷手势", "快捷手势的默认手势表。每一条都可以在设置里修改或关掉。",
                             "gestures", gestures_body()))

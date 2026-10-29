@@ -11,7 +11,7 @@ struct KeyCombo: Equatable {
 }
 
 enum TriggerKind: String, CaseIterable, Identifiable {
-    case rightStroke, middleStroke, fnStroke, fnCorner
+    case rightStroke, middleStroke
     case rightScroll, middleScroll, hotCornerClick, hotCornerScroll, hotkey
 
     var id: String { rawValue }
@@ -20,8 +20,6 @@ enum TriggerKind: String, CaseIterable, Identifiable {
         switch self {
         case .rightStroke: return "按住右键画"
         case .middleStroke: return "按住中键画"
-        case .fnStroke: return "按住 Fn 在触控板上画"
-        case .fnCorner: return "按住 Fn 轻点触控板四角"
         case .rightScroll: return "按住右键滚动滚轮"
         case .middleScroll: return "按住中键滚动滚轮"
         case .hotCornerClick: return "在屏幕角落单击右键"
@@ -34,7 +32,6 @@ enum TriggerKind: String, CaseIterable, Identifiable {
         switch group {
         case .mouse: return .rightStroke
         case .middle: return .middleStroke
-        case .trackpad: return .fnStroke
         case .corner: return .hotCornerClick
         case .key: return .hotkey
         }
@@ -99,7 +96,7 @@ struct RuleDraft {
         if let free = StrokeName.allCases.first(where: { !used.contains("\($0.rawValue)|\(Corner.topLeft.rawValue)") }) {
             stroke = free
         }
-        if triggerKind == .hotCornerClick || triggerKind == .fnCorner,
+        if triggerKind == .hotCornerClick,
            let free = Corner.allCases.first(where: { !used.contains("\(StrokeName.arrowLeft.rawValue)|\($0.rawValue)") }) {
             corner = free
         }
@@ -113,8 +110,6 @@ struct RuleDraft {
         switch rule.trigger {
         case .rightStroke(let name): triggerKind = .rightStroke; stroke = name
         case .middleStroke(let name): triggerKind = .middleStroke; stroke = name
-        case .fnStroke(let name): triggerKind = .fnStroke; stroke = name
-        case .fnCorner(let c): triggerKind = .fnCorner; corner = c
         case .rightScroll(let d, let bundle): triggerKind = .rightScroll; scroll = d; scrollBundleID = bundle
         case .middleScroll(let d): triggerKind = .middleScroll; scroll = d
         case .hotCornerClick(let c): triggerKind = .hotCornerClick; corner = c
@@ -139,8 +134,6 @@ struct RuleDraft {
         switch triggerKind {
         case .rightStroke: return .rightStroke(stroke)
         case .middleStroke: return .middleStroke(stroke)
-        case .fnStroke: return .fnStroke(stroke)
-        case .fnCorner: return .fnCorner(corner)
         case .rightScroll: return .rightScroll(scroll, bundleID: scrollBundleID)
         case .middleScroll: return .middleScroll(scroll)
         case .hotCornerClick: return .hotCornerClick(corner)
@@ -244,11 +237,11 @@ struct RuleEditor: View {
 
                 Section("怎么触发") {
                     Picker("方式", selection: $draft.triggerKind) {
-                        ForEach([TriggerKind.rightStroke, .middleStroke, .fnStroke]) { Text($0.title).tag($0) }
+                        ForEach([TriggerKind.rightStroke, .middleStroke]) { Text($0.title).tag($0) }
                         Divider()
                         ForEach([TriggerKind.rightScroll, .middleScroll]) { Text($0.title).tag($0) }
                         Divider()
-                        ForEach([TriggerKind.fnCorner, .hotCornerClick, .hotCornerScroll]) { Text($0.title).tag($0) }
+                        ForEach([TriggerKind.hotCornerClick, .hotCornerScroll]) { Text($0.title).tag($0) }
                         Divider()
                         Text(TriggerKind.hotkey.title).tag(TriggerKind.hotkey)
                     }
@@ -325,9 +318,9 @@ struct RuleEditor: View {
 
     @ViewBuilder private var triggerDetail: some View {
         switch draft.triggerKind {
-        case .rightStroke, .middleStroke, .fnStroke:
+        case .rightStroke, .middleStroke:
             StrokePicker(selection: $draft.stroke)
-        case .fnCorner, .hotCornerClick:
+        case .hotCornerClick:
             CornerPicker(selection: $draft.corner)
         case .hotCornerScroll:
             CornerPicker(selection: $draft.corner)

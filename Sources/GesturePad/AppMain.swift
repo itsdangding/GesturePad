@@ -140,6 +140,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(item(model.enabled ? "暂停手势" : "继续手势",
                           model.enabled ? "pause.fill" : "play.fill",
                           #selector(toggleEnabled)))
+        model.refreshLoginItem()
+        let login = item("开机启动", "togglepower", #selector(toggleLaunchAtLogin))
+        login.state = model.launchAtLogin ? .on : .off
+        menu.addItem(login)
         menu.addItem(.separator())
         menu.addItem(item("退出快捷手势", "power", #selector(quit), key: "q"))
     }
@@ -161,6 +165,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func toggleEnabled() {
         model.setEnabled(!model.enabled)
+    }
+
+    @objc private func toggleLaunchAtLogin() {
+        model.setLaunchAtLogin(!model.launchAtLogin)
     }
 
     @objc private func quit() {

@@ -25,17 +25,11 @@ struct RulesPane: View {
                 }
             }
 
-            if group == .corner || group == .trackpad {
+            if group == .corner {
                 Section {
-                    CornerMap(
-                        rules: items,
-                        trackpad: group == .trackpad,
-                        highlight: group == .corner ? model.pointerCorner : nil
-                    )
+                    CornerMap(rules: items, highlight: model.pointerCorner)
                 } footer: {
-                    if group == .corner {
-                        Text("把指针推到角落试试，对应的那一格会亮。")
-                    }
+                    Text("把指针推到角落试试，对应的那一格会亮。")
                 }
             }
 
@@ -102,8 +96,6 @@ struct RulesPane: View {
 
     private var warning: String? {
         switch group {
-        case .trackpad where !model.trackpadReady:
-            return model.trackpadMessage
         case .key where !model.inputTrusted:
             return "键盘快捷键需要「输入监控」权限，在概览里可以申请。"
         default:
@@ -223,19 +215,18 @@ struct RuleRow: View {
     }
 }
 
-/// A screen (or trackpad) with what each corner does written in it.
+/// A screen with what each corner does written in it.
 struct CornerMap: View {
     let rules: [GestureRule]
-    let trackpad: Bool
     let highlight: Corner?
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: trackpad ? 16 : 8, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
-            RoundedRectangle(cornerRadius: trackpad ? 16 : 8, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
-            Text(trackpad ? "按住 Fn 轻点" : "指针推到角落")
+            Text("指针推到角落")
                 .font(.callout)
                 .foregroundStyle(.tertiary)
             ForEach(Corner.allCases, id: \.self) { corner in
@@ -244,15 +235,13 @@ struct CornerMap: View {
                     .padding(10)
             }
         }
-        .frame(height: trackpad ? 130 : 170)
+        .frame(height: 170)
         .padding(.vertical, 4)
     }
 
     private func cell(_ corner: Corner) -> some View {
         let lines = rules.compactMap { rule -> String? in
             switch rule.trigger {
-            case .fnCorner(let c) where c == corner:
-                return rule.title
             case .hotCornerClick(let c) where c == corner:
                 return "右键 · \(rule.title)"
             case .hotCornerScroll(let c, let direction) where c == corner:

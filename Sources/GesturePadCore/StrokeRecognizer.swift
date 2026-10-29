@@ -80,7 +80,6 @@ public struct RecognizeOptions: Equatable {
     }
 
     public static let mouse = RecognizeOptions(minChord: 48, minLetterPath: 80, letterThreshold: 0.72, minGestureLength: 150)
-    public static let trackpad = RecognizeOptions(minChord: 180, minLetterPath: 220, letterThreshold: 0.72, minGestureLength: 180)
 }
 
 public enum StrokeRecognizer {

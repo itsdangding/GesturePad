@@ -11,16 +11,12 @@ final class AppModel: ObservableObject {
     @Published var rules: [GestureRule] = []
     @Published var enabled = true
     @Published var showTrail = true
-    @Published var fnRequired = true
-    @Published var flipTrackpadY = false
     @Published var mouseScroll: ScrollStyle = .standard
     @Published var trackpadScroll: ScrollStyle = .system
     @Published var systemNatural = true
     @Published var launchAtLogin = false
     @Published var accessibilityTrusted = false
     @Published var inputTrusted = false
-    @Published var trackpadReady = false
-    @Published var trackpadMessage = "正在检查触控板"
     @Published var recordingRuleID: String?
     @Published var status = "正在启动"
     @Published var pointerCorner: Corner?
@@ -40,10 +36,6 @@ final class AppModel: ObservableObject {
         if defaults.object(forKey: Keys.showTrail) != nil {
             showTrail = defaults.bool(forKey: Keys.showTrail)
         }
-        if defaults.object(forKey: Keys.fnRequired) != nil {
-            fnRequired = defaults.bool(forKey: Keys.fnRequired)
-        }
-        flipTrackpadY = defaults.bool(forKey: Keys.flipY)
         if let raw = defaults.string(forKey: Keys.mouseScroll), let style = ScrollStyle(rawValue: raw) {
             mouseScroll = style
         } else if defaults.object(forKey: Keys.reverseMouseY) != nil {
@@ -164,18 +156,6 @@ final class AppModel: ObservableObject {
     func setShowTrail(_ value: Bool) {
         showTrail = value
         UserDefaults.standard.set(value, forKey: Keys.showTrail)
-        push()
-    }
-
-    func setFnRequired(_ value: Bool) {
-        fnRequired = value
-        UserDefaults.standard.set(value, forKey: Keys.fnRequired)
-        push()
-    }
-
-    func setFlipY(_ value: Bool) {
-        flipTrackpadY = value
-        UserDefaults.standard.set(value, forKey: Keys.flipY)
         push()
     }
 
@@ -355,8 +335,6 @@ final class AppModel: ObservableObject {
         events.box.update { snapshot in
             snapshot.enabled = self.enabled
             snapshot.showTrail = self.showTrail
-            snapshot.fnRequired = self.fnRequired
-            snapshot.flipY = self.flipTrackpadY
             snapshot.mouseScroll = self.mouseScroll
             snapshot.trackpadScroll = self.trackpadScroll
             snapshot.systemNatural = self.systemNatural
@@ -368,8 +346,6 @@ final class AppModel: ObservableObject {
     private enum Keys {
         static let enabled = "GesturePad.enabled"
         static let showTrail = "GesturePad.showTrail"
-        static let fnRequired = "GesturePad.fnRequired"
-        static let flipY = "GesturePad.flipY"
         static let reverseMouseY = "GesturePad.reverseMouseY"
         static let mouseScroll = "GesturePad.mouseScroll"
         static let trackpadScroll = "GesturePad.trackpadScroll"
@@ -383,8 +359,6 @@ extension AppModel {
         savesRules = false
         accessibilityTrusted = ProcessInfo.processInfo.environment["GESTUREPAD_PREVIEW_UNTRUSTED"] == nil
         inputTrusted = accessibilityTrusted
-        trackpadReady = true
-        trackpadMessage = "触控板可用"
         refreshStatus()
         pointerCorner = .bottomRight
         if let index = rules.firstIndex(where: { $0.id == "mouse.w" }) {

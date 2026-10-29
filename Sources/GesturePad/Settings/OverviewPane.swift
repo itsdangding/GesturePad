@@ -47,9 +47,6 @@ struct OverviewPane: View {
                 HowRow(symbol: "computermouse", title: "鼠标", text: "按住右键画一笔，松开执行。只点一下仍是右键菜单。") {
                     pane = .rules(.mouse)
                 }
-                HowRow(symbol: "hand.point.up.left", title: "触控板", text: "先按住 Fn，再用一根手指画。") {
-                    pane = .rules(.trackpad)
-                }
                 HowRow(symbol: "rectangle.inset.topleft.filled", title: "屏幕四角", text: "指针推到角落，单击右键或滚动。") {
                     pane = .rules(.corner)
                 }

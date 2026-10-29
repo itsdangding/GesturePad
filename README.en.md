@@ -6,7 +6,7 @@
 
 <p align="center">
   Hold, draw, release.<br>
-  A macOS menu bar app for mouse, trackpad and hot-corner gestures that open apps, send shortcuts and arrange windows.
+  A macOS menu bar app for mouse, hot-corner and hotkey gestures that open apps, send shortcuts and arrange windows.
 </p>
 
 <p align="center">
@@ -32,12 +32,11 @@
 | --- | --- |
 | **Right mouse button**: hold and draw a line or letter, release to run | W opens WeChat, ← goes back, ↗ maximizes the window |
 | **Middle button**: draw, or hold it and turn the wheel | S locks the screen, the wheel switches tabs |
-| **Trackpad**: hold Fn, then draw with one finger | → snaps the window right; Fn + tap a corner snaps it to a quarter |
 | **Screen corners**: push the pointer into a corner, then right-click or turn the mouse wheel | Top-left right-click starts the screensaver; bottom-right wheel changes the volume |
 | **Keyboard**: global hotkeys | ⌥ + arrows snap windows to halves |
 
-- **Stays out of the way.** A short right-click is still a right-click. The trackpad is a normal trackpad unless Fn is held. Two-finger clicks on the trackpad go straight to the system.
-- **Your own gestures.** Switch off, edit, delete or add any gesture. Triggers: a line or letter, a trackpad corner, holding a button while scrolling, a screen corner, or a hotkey. Actions: open an app, URL or folder, send a shortcut, arrange the window, lock the screen, start the screensaver, change brightness or volume. You get a warning when two gestures share a trigger.
+- **Stays out of the way.** A short right-click is still a right-click. The trackpad has no drawing gestures, so nothing fires by accident. Two-finger clicks on the trackpad go straight to the system.
+- **Your own gestures.** Switch off, edit, delete or add any gesture. Triggers: a line or letter, holding a button while scrolling, a screen corner, or a hotkey. Actions: open an app, URL or folder, send a shortcut, arrange the window, lock the screen, start the screensaver, change brightness or volume. You get a warning when two gestures share a trigger.
 - **Record your handwriting.** If a letter isn't recognized well, record how you draw it.
 - **Separate scroll directions.** Pick system, standard or natural scrolling for the mouse wheel and the trackpad independently. macOS only has one switch for both.
 - **Liquid Glass.** The settings window uses Liquid Glass on macOS 26 and frosted material on macOS 14 and 15, in light and dark mode.
@@ -94,7 +93,7 @@ python3 scripts/build-docs.py        # regenerate the website after changing def
 
 Preview extras: `GESTUREPAD_PREVIEW_BACKDROP=1` (colorful backdrop for the glass), `GESTUREPAD_PREVIEW_DARK=1`, `GESTUREPAD_PREVIEW_TRAIL=1` (sample stroke on screen), `GESTUREPAD_PREVIEW_UNTRUSTED=1`.
 
-`GesturePadCore` holds the stroke recognizer (a $1-style unistroke matcher with shape features), the rule model and the scroll logic. It has no UI dependencies and is covered by unit tests. The app target holds the event tap, the trackpad reader (private `MultitouchSupport` framework), the action runner and the SwiftUI settings window.
+`GesturePadCore` holds the stroke recognizer (a $1-style unistroke matcher with shape features), the rule model and the scroll logic. It has no UI dependencies and is covered by unit tests. The app target holds the event tap, a trackpad finger detector used to tell trackpad from mouse (private `MultitouchSupport` framework), the action runner and the SwiftUI settings window.
 
 ## License
 

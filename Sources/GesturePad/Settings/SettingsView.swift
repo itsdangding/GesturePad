@@ -22,7 +22,6 @@ enum Pane: Hashable {
         case "overview", "1": self = .overview
         case "mouse": self = .rules(.mouse)
         case "middle": self = .rules(.middle)
-        case "trackpad": self = .rules(.trackpad)
         case "corner": self = .rules(.corner)
         case "key": self = .rules(.key)
         case "preferences": self = .preferences
@@ -149,10 +148,7 @@ struct RecordingBanner: View {
     }
 
     private var howToRecord: String {
-        if case .fnStroke = rule.trigger {
-            return "按住 Fn，照你的写法在触控板上画一次。松开就保存。"
-        }
-        return "按住右键，照你的写法画一次。松开就保存，最多留 3 笔。"
+        "按住右键，照你的写法画一次。松开就保存，最多留 3 笔。"
     }
 }
 

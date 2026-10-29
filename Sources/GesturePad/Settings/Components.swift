@@ -13,7 +13,6 @@ extension RuleGroup {
         switch self {
         case .mouse: return "鼠标右键"
         case .middle: return "鼠标中键"
-        case .trackpad: return "触控板"
         case .corner: return "屏幕四角"
         case .key: return "键盘"
         }
@@ -23,7 +22,6 @@ extension RuleGroup {
         switch self {
         case .mouse: return "computermouse"
         case .middle: return "computermouse.fill"
-        case .trackpad: return "hand.point.up.left"
         case .corner: return "rectangle.inset.topleft.filled"
         case .key: return "keyboard"
         }
@@ -35,8 +33,6 @@ extension RuleGroup {
             return "按住右键画一笔，松开才执行。只动一小段仍是普通右键。这一类全部关掉后，右键完全不经过快捷手势。"
         case .middle:
             return "按住中键画，或按住中键滚动。"
-        case .trackpad:
-            return "按住 Fn 再用一根手指画。平常移动光标、滑动页面不会触发。按住 Fn 轻点触控板四角，窗口缩到对应的四分之一。"
         case .corner:
             return "把指针推到屏幕角落，再单击右键或滚动鼠标滚轮。触控板双指滑动不会触发。"
         case .key:
@@ -117,15 +113,14 @@ struct StrokeGlyph: View {
     }
 }
 
-/// A small screen or trackpad outline with one corner lit.
+/// A small screen outline with one corner lit.
 struct CornerGlyph: View {
     let corner: Corner
     var color: Color = .brand
-    var rounded: CGFloat = 4
 
     var body: some View {
         ZStack(alignment: corner.alignment) {
-            RoundedRectangle(cornerRadius: rounded)
+            RoundedRectangle(cornerRadius: 4)
                 .strokeBorder(color.opacity(0.55), lineWidth: 1.5)
             Circle()
                 .fill(color)
@@ -165,7 +160,7 @@ struct TriggerGlyph: View {
 
     @ViewBuilder private var content: some View {
         switch rule.trigger {
-        case .rightStroke(let name), .middleStroke(let name), .fnStroke(let name):
+        case .rightStroke(let name), .middleStroke(let name):
             if let sample = rule.userSamples.last?.map(\.point) {
                 // The user's own way of writing it, smoothed.
                 StrokeGlyph(points: sample, color: tint, lineWidth: 2.2)
@@ -182,8 +177,6 @@ struct TriggerGlyph: View {
                     .font(.system(size: 10, weight: .bold))
             }
             .foregroundStyle(tint)
-        case .fnCorner(let corner):
-            CornerGlyph(corner: corner, color: tint, rounded: 6)
         case .hotCornerClick(let corner):
             CornerGlyph(corner: corner, color: tint)
         case .hotCornerScroll(let corner, let direction):

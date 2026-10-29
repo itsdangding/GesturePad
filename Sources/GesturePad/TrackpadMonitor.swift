@@ -1,7 +1,6 @@
 import CoreGraphics
 import Darwin
 import Foundation
-import GesturePadCore
 
 /// Layout of a contact reported by the private MultitouchSupport framework.
 /// The size and the normalized-vector offset are the stable part of the ABI.
@@ -49,24 +48,12 @@ private let mtFrameCallback: MTFrameCallback = { _, touches, count, _, _, refcon
     monitor.handle(touches: touches, count: count)
 }
 
-/// Reads one-finger paths from the built-in trackpad.
-/// Mouse drawing does not depend on this. If the private framework is missing,
-/// trackpad letters and corner taps stay off and the rest of the app still runs.
+/// Watches whether fingers are on the built-in trackpad, so scroll events and
+/// right clicks can be told apart from a mouse. It does not read gestures.
+/// If the private framework is missing, the app falls back to event fields.
 final class TrackpadMonitor {
-    var onStroke: (([CGPoint]) -> Void)?
-    var onCorner: ((Corner) -> Void)?
-    var onMove: (([CGPoint]) -> Void)?
-    var onEnd: (() -> Void)?
-    var readConfig: () -> (fn: Bool, fnRequired: Bool, flipY: Bool, enabled: Bool) = { (false, true, false, true) }
-
     private var framework: UnsafeMutableRawPointer?
     private var device: OpaquePointer?
-    private var running = false
-    private var tracking = false
-    private var fnAtStart = false
-    private var startX = 0.0
-    private var startY = 0.0
-    private var stroke: [CGPoint] = []
     private let touchLock = NSLock()
     private var lastMultiTouch: TimeInterval = 0
     private var lastTouch: TimeInterval = 0
@@ -120,8 +107,7 @@ final class TrackpadMonitor {
         let refcon = Unmanaged.passUnretained(self).toOpaque()
         register(created, mtFrameCallback, refcon)
         startDevice(created, 0)
-        running = isRunning(created)
-        if !running {
+        if !isRunning(created) {
             return "触控板接口没有开始回报手指"
         }
         isAvailable = true
@@ -129,67 +115,6 @@ final class TrackpadMonitor {
     }
 
     func handle(touches: UnsafeMutableRawPointer?, count: Int) {
-        noteFingerCount(touches: touches, count: count)
-        let config = readConfig()
-        let armed = config.enabled && (config.fn || !config.fnRequired)
-        guard config.enabled else {
-            cancel()
-            return
-        }
-        if !armed {
-            if tracking { finish() }
-            return
-        }
-        guard let touches, count > 0, count < 32 else {
-            finish()
-            return
-        }
-
-        var alive: [(x: Double, y: Double)] = []
-        var sawLift = false
-        for index in 0..<count {
-            let touch = touches.advanced(by: index * MemoryLayout<MTTouch>.stride).load(as: MTTouch.self)
-            guard touch.state == 3 || touch.state == 4 || touch.state == 5 else { continue }
-            let x = Double(touch.normalized.position.x)
-            var y = Double(touch.normalized.position.y)
-            guard x.isFinite, y.isFinite, abs(x) < 4, abs(y) < 4 else { continue }
-            if config.flipY {
-                y = 1 - y
-            }
-            if touch.state == 5 {
-                sawLift = true
-                continue
-            }
-            alive.append((x, y))
-        }
-
-        if alive.count >= 2 {
-            cancel()
-            return
-        }
-        if let finger = alive.first {
-            let point = CGPoint(x: finger.x * 1000, y: finger.y * 1000)
-            if !tracking {
-                tracking = true
-                fnAtStart = config.fn
-                startX = finger.x
-                startY = finger.y
-                stroke = [point]
-            } else {
-                stroke.append(point)
-            }
-            if stroke.count % 2 == 0 {
-                onMove?(stroke)
-            }
-            return
-        }
-        if sawLift || alive.isEmpty {
-            finish()
-        }
-    }
-
-    /// Runs for every frame, whatever the gesture settings are.
-    private func noteFingerCount(touches: UnsafeMutableRawPointer?, count: Int) {
         guard let touches, count >= 1, count < 32 else { return }
         var down = 0
         for index in 0..<count {
@@ -202,58 +127,6 @@ final class TrackpadMonitor {
         lastTouch = now
         if down >= 2 { lastMultiTouch = now }
         touchLock.unlock()
-    }
-
-    private func finish() {
-        guard tracking else { return }
-        let points = stroke
-        let fn = fnAtStart
-        let origin = (x: startX, y: startY)
-        tracking = false
-        stroke = []
-
-        let config = readConfig()
-        let allowed = fn || !config.fnRequired
-        guard allowed else {
-            onEnd?()
-            return
-        }
-
-        let dx = (points.last?.x ?? 0) - (points.first?.x ?? 0)
-        let dy = (points.last?.y ?? 0) - (points.first?.y ?? 0)
-        if hypot(dx, dy) < 80, fn, let corner = Self.corner(x: origin.x, y: origin.y) {
-            onCorner?(corner)
-            onEnd?()
-            return
-        }
-        guard points.count >= 2 else {
-            onEnd?()
-            return
-        }
-        onStroke?(points)
-        onEnd?()
-    }
-
-    private func cancel() {
-        let wasTracking = tracking
-        tracking = false
-        stroke = []
-        if wasTracking {
-            onEnd?()
-        }
-    }
-
-    static func corner(x: Double, y: Double) -> Corner? {
-        let edge = 0.22
-        let left = x < edge
-        let right = x > 1 - edge
-        let bottom = y < edge
-        let top = y > 1 - edge
-        if top && left { return .topLeft }
-        if top && right { return .topRight }
-        if bottom && left { return .bottomLeft }
-        if bottom && right { return .bottomRight }
-        return nil
     }
 
     private func symbol<T>(_ handle: UnsafeMutableRawPointer, _ name: String) -> T? {

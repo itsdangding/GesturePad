@@ -10,8 +10,8 @@ struct PreferencesPane: View {
         Form {
             Section("通用") {
                 Toggle(isOn: Binding(get: { model.launchAtLogin }, set: model.setLaunchAtLogin)) {
-                    Text("登录时启动")
-                    Text("开机后自动出现在菜单栏。")
+                    Text("开机启动")
+                    Text("登录后自动出现在菜单栏。")
                 }
                 Toggle(isOn: Binding(get: { model.showTrail }, set: model.setShowTrail)) {
                     Text("画出轨迹")
@@ -47,30 +47,6 @@ struct PreferencesPane: View {
                     Text("仍是普通右键菜单")
                         .foregroundStyle(.secondary)
                 }
-            }
-
-            Section {
-                Toggle(isOn: Binding(get: { model.fnRequired }, set: model.setFnRequired)) {
-                    Text("必须按住 Fn 才画")
-                    Text("关掉后，每次单指滑动都可能被当成手势，不建议。")
-                }
-                Toggle(isOn: Binding(get: { model.flipTrackpadY }, set: model.setFlipY)) {
-                    Text("画手势时上下对调")
-                    Text("如果在触控板上向上画被认成向下，打开这一项。不影响滚动。")
-                }
-                LabeledContent {
-                    Button("重新检查") {
-                        model.refreshTrust()
-                        model.events.ensureRunning()
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        StatusDot(color: model.trackpadReady ? .green : .orange)
-                        Text(model.trackpadReady ? "内置触控板可用" : model.trackpadMessage)
-                    }
-                }
-            } header: {
-                Text("触控板")
             }
 
             Section {

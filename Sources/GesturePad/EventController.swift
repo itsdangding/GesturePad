@@ -6,8 +6,6 @@ import GesturePadCore
 struct ConfigSnapshot {
     var enabled = true
     var showTrail = true
-    var fnRequired = true
-    var flipY = false
     var mouseScroll: ScrollStyle = .standard
     var trackpadScroll: ScrollStyle = .system
     /// The system "natural scrolling" switch. On unless turned off.
@@ -16,7 +14,6 @@ struct ConfigSnapshot {
     /// AppKit points start at its bottom-left, so y is always `primaryMaxY - y`.
     var primaryMaxY: CGFloat = 0
     var screenFrames: [CGRect] = []
-    var fnDown = false
     var rules: [GestureRule] = []
     var recordingRuleID: String?
     var frontBundleID: String?
@@ -113,27 +110,9 @@ final class EventController {
 
     func start() {
         guard thread == nil else { return }
-        trackpad.readConfig = { [weak self] in
-            let snap = self?.box.snapshot()
-            return (snap?.fnDown ?? false, snap?.fnRequired ?? true, snap?.flipY ?? false, snap?.enabled ?? false)
-        }
-        trackpad.onStroke = { [weak self] points in
-            self?.handleTrackpadStroke(points)
-        }
-        trackpad.onCorner = { [weak self] corner in
-            self?.handleTrackpadCorner(corner)
-        }
-        trackpad.onMove = { [weak self] points in
-            self?.showTrackpadTrail(points)
-        }
-        trackpad.onEnd = { [weak self] in
-            self?.overlay.clear()
-        }
-        if let error = trackpad.start() {
-            DispatchQueue.main.async { self.model?.trackpadReady = false; self.model?.trackpadMessage = error }
-        } else {
-            DispatchQueue.main.async { self.model?.trackpadReady = true; self.model?.trackpadMessage = "触控板可用" }
-        }
+        // Only tells trackpad scrolling and clicks apart from the mouse.
+        // Without it the app guesses from event fields, so a failure is fine.
+        _ = trackpad.start()
 
         thread = Thread { [weak self] in
             self?.runLoop = CFRunLoopGetCurrent()
@@ -186,7 +165,6 @@ final class EventController {
         if event.getIntegerValueField(.eventSourceUserData) == Self.syntheticMarker {
             return Unmanaged.passUnretained(event)
         }
-        box.update { $0.fnDown = event.flags.contains(.maskSecondaryFn) }
         let snap = box.snapshot()
         var scrollUp = false
         if type == .scrollWheel {
@@ -445,39 +423,6 @@ final class EventController {
         return false
     }
 
-    private func handleTrackpadStroke(_ points: [CGPoint]) {
-        let snap = box.snapshot()
-        guard snap.enabled else { return }
-        if let recording = box.snapshot().recordingRuleID {
-            DispatchQueue.main.async { self.model?.saveSample(ruleID: recording, points: points) }
-            overlay.clear()
-            return
-        }
-        let extras = RuleStore.samples(in: snap.rules)
-        guard let recognition = StrokeRecognizer.recognize(points, extraTemplates: extras, options: .trackpad) else {
-            overlay.clear()
-            return
-        }
-        if let rule = snap.rules.first(where: { rule in
-            guard rule.enabled, case .fnStroke(let name) = rule.trigger else { return false }
-            return name == recognition.name
-        }) {
-            perform(rule, detail: recognition.name.title)
-        }
-        overlay.clear()
-    }
-
-    private func handleTrackpadCorner(_ corner: Corner) {
-        let snap = box.snapshot()
-        guard snap.enabled else { return }
-        if let rule = snap.rules.first(where: { rule in
-            guard rule.enabled, case .fnCorner(let expected) = rule.trigger else { return false }
-            return expected == corner
-        }) {
-            perform(rule, detail: "触控板\(corner.title)")
-        }
-    }
-
     private func showMouseTrail(_ points: [CGPoint]) {
         guard box.snapshot().showTrail, points.count >= 2 else { return }
         let length = StrokeRecognizer.pathLength(StrokeRecognizer.cleanup(points))
@@ -486,21 +431,6 @@ final class EventController {
             return
         }
         overlay.show(points)
-    }
-
-    private func showTrackpadTrail(_ points: [CGPoint]) {
-        guard box.snapshot().showTrail, let first = points.first, points.count >= 2 else { return }
-        guard StrokeRecognizer.pathLength(points) >= RecognizeOptions.trackpad.minGestureLength else {
-            overlay.clear()
-            return
-        }
-        DispatchQueue.main.async {
-            let origin = NSEvent.mouseLocation
-            let screen = points.map { point in
-                CGPoint(x: origin.x + (point.x - first.x) * 1.3, y: origin.y + (point.y - first.y) * 1.3)
-            }
-            self.overlay.show(screen)
-        }
     }
 
     private func perform(_ rule: GestureRule, detail: String? = nil, repeatable: Bool = false) {
